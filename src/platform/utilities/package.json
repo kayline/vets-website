@@ -32,6 +32,7 @@
         "@sentry/browser": "*",
         "chai": "*",
         "date-fns": "*",
+        "date-fns-tz": "*",
         "fast-levenshtein": "*",
         "js-cookie": "*",
         "local-storage-fallback": "*",

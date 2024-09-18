@@ -1,27 +1,48 @@
-import moment from 'moment';
+import {
+  parseISO,
+  format,
+  isValid,
+  setYear,
+  setMonth,
+  setDate,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  differenceInSeconds,
+} from 'date-fns';
+
+const parseZonedStringToDatetime = dateTimeString => {
+  const noOffset = dateTimeString.slice(0, -6);
+  const date = parseISO(noOffset);
+  return isValid(date) ? date : null;
+};
 
 export function dateToMoment(dateField) {
-  return moment({
-    year: dateField.year.value,
-    month: dateField.month.value ? parseInt(dateField.month.value, 10) - 1 : '',
-    day: dateField.day ? dateField.day.value : null,
-  });
+  let date = new Date(2024, 1, 1);
+  date = setYear(date, parseInt(dateField.year.value, 10));
+  if (dateField.month.value) {
+    date = setMonth(date, dateField.month.value);
+  }
+  if (dateField.day) {
+    date = setDate(date, dateField.day.value);
+  }
+  return date;
 }
 
 export function formatDateLong(date) {
-  return moment(date).format('MMMM D, YYYY');
+  return format(parseZonedStringToDatetime(date), 'MMMM d, yyyy');
 }
 
 export function formatDateParsedZoneLong(date) {
-  return moment.parseZone(date).format('MMMM D, YYYY');
+  return format(parseZonedStringToDatetime(date), 'MMMM d, yyyy');
 }
 
 export function formatDateShort(date) {
-  return moment(date).format('MM/DD/YYYY');
+  return format(parseZonedStringToDatetime(date), 'MM/dd/yyyy');
 }
 
 export function formatDateParsedZoneShort(date) {
-  return moment.parseZone(date).format('MM/DD/YYYY');
+  return format(parseZonedStringToDatetime(date), 'MM/dd/yyyy');
 }
 
 function formatDiff(diff, desc) {
@@ -33,33 +54,33 @@ function formatDiff(diff, desc) {
  * the provided date occurs. It’s meant to be less fuzzy than moment’s
  * timeFromNow so it can be used for expiration dates
  *
- * @param date {Moment Date} The future date to check against
- * @param userFromDate {Moment Date} The earlier date in the range. Defaults to today.
+ * @param date {Date} The future date to check against
+ * @param userFromDate {Date} The earlier date in the range. Defaults to today.
  * @returns {string} The string description of how long until date occurs
  */
 export function timeFromNow(date, userFromDate = null) {
   // Not using defaulting because we want today to be when this function
   // is called, not when the file is parsed and run
-  const fromDate = userFromDate || moment();
-  const dayDiff = date.diff(fromDate, 'days');
+  const fromDate = userFromDate || new Date();
+  const dayDiff = differenceInDays(date, fromDate);
 
   if (dayDiff >= 1) {
     return formatDiff(dayDiff, 'day');
   }
 
-  const hourDiff = date.diff(fromDate, 'hours');
+  const hourDiff = differenceInHours(date, fromDate);
 
   if (hourDiff >= 1) {
     return formatDiff(hourDiff, 'hour');
   }
 
-  const minuteDiff = date.diff(fromDate, 'minutes');
+  const minuteDiff = differenceInMinutes(date, fromDate);
 
   if (minuteDiff >= 1) {
     return formatDiff(minuteDiff, 'minute');
   }
 
-  const secondDiff = date.diff(fromDate, 'seconds');
+  const secondDiff = differenceInSeconds(date, fromDate);
 
   if (secondDiff >= 1) {
     return formatDiff(secondDiff, 'second');
@@ -110,24 +131,24 @@ const LONG_FORM_MONTHS = [
  * @returns {string} The formatted date-time string
  */
 export const formatDowntime = dateTime => {
-  const dtMoment = moment.parseZone(dateTime);
-  const dtHour = dtMoment.hour();
-  const dtMinute = dtMoment.minute();
+  const dtMoment = parseZonedStringToDatetime(dateTime);
+  const dtHour = dtMoment.getHours();
+  const dtMinute = dtMoment.getMinutes();
 
-  const monthFormat = LONG_FORM_MONTHS.includes(dtMoment.month())
+  const monthFormat = LONG_FORM_MONTHS.includes(dtMoment.getMonth())
     ? 'MMMM'
-    : 'MMM';
+    : "MMM'.'";
 
   let timeFormat;
 
   if (dtHour === 0 && dtMinute === 0) {
-    timeFormat = '[midnight]';
+    timeFormat = "'midnight'";
   } else if (dtHour === 12 && dtMinute === 0) {
-    timeFormat = '[noon]';
+    timeFormat = "'noon'";
   } else {
-    const amPmFormat = dtHour < 12 ? '[a.m.]' : '[p.m.]';
+    const amPmFormat = dtHour < 12 ? "'a.m.'" : "'p.m.'";
     timeFormat = `h:mm ${amPmFormat}`;
   }
 
-  return dtMoment.format(`${monthFormat} D [at] ${timeFormat} [ET]`);
+  return format(dtMoment, `${monthFormat} d 'at' ${timeFormat} 'ET'`);
 };

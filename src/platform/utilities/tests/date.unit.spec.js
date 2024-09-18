@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import moment from 'moment';
+import { isValid, getYear, getMonth, getDate, add } from 'date-fns';
 
 import {
   dateToMoment,
@@ -14,7 +14,7 @@ import {
 
 describe('Helpers unit tests', () => {
   describe('dateToMoment', () => {
-    it('should convert date to moment', () => {
+    it('should convert date to Date', () => {
       const date = dateToMoment({
         month: {
           value: 2,
@@ -27,12 +27,12 @@ describe('Helpers unit tests', () => {
         },
       });
 
-      expect(date.isValid()).to.be.true;
-      expect(date.year()).to.equal(1901);
-      expect(date.month()).to.equal(1);
-      expect(date.date()).to.equal(3);
+      expect(isValid(date)).to.be.true;
+      expect(getYear(date)).to.equal(1901);
+      expect(getMonth(date)).to.equal(2);
+      expect(getDate(date)).to.equal(3);
     });
-    it('should convert partial date to moment', () => {
+    it('should convert partial date to Date', () => {
       const date = dateToMoment({
         month: {
           value: 2,
@@ -42,32 +42,30 @@ describe('Helpers unit tests', () => {
         },
       });
 
-      expect(date.isValid()).to.be.true;
-      expect(date.year()).to.equal(1901);
-      expect(date.month()).to.equal(1);
-      expect(date.date()).to.equal(1);
+      expect(isValid(date)).to.be.true;
+      expect(getYear(date)).to.equal(1901);
+      expect(getMonth(date)).to.equal(2);
+      expect(getDate(date)).to.equal(1);
     });
   });
 
   describe('timeFromNow', () => {
-    const today = moment();
+    const today = new Date();
     it('should display time in days', () => {
-      expect(timeFromNow(moment(today).add(30, 'days'), today)).to.equal(
-        '30 days',
-      );
+      expect(timeFromNow(add(today, { days: 30 }), today)).to.equal('30 days');
     });
     it('should display time in hours', () => {
-      expect(timeFromNow(moment(today).add(23, 'hours'), today)).to.equal(
+      expect(timeFromNow(add(today, { hours: 23 }), today)).to.equal(
         '23 hours',
       );
     });
     it('should display time in minutes', () => {
-      expect(timeFromNow(moment(today).add(59, 'minutes'), today)).to.equal(
+      expect(timeFromNow(add(today, { minutes: 59 }), today)).to.equal(
         '59 minutes',
       );
     });
     it('should display time in seconds', () => {
-      expect(timeFromNow(moment(today).add(59, 'seconds'), today)).to.equal(
+      expect(timeFromNow(add(today, { seconds: 59 }), today)).to.equal(
         '59 seconds',
       );
     });
