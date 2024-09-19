@@ -74,6 +74,17 @@ describe('Helpers unit tests', () => {
     it('should display the date in the short format', () => {
       expect(formatDateShort(noon)).to.equal('11/12/1995');
     });
+
+    const singleDigitDay = '1995-11-02T12:00:00.000+0000';
+
+    it('should display the date with padding ', () => {
+      expect(formatDateShort(singleDigitDay)).to.equal('11/02/1995');
+    });
+
+    it('should return the current date in the short format if no argument is given', () => {
+      const today = new Date();
+      expect(formatDateShort()).to.include(getYear(today));
+    });
   });
 
   describe('formatDateParsedZoneShort', () => {
@@ -107,13 +118,13 @@ describe('Helpers unit tests', () => {
   describe('formatDateLong', () => {
     const noon = '1995-11-12T12:00:00.000+0000';
 
-    it('should display the date in the short format', () => {
+    it('should display the date in the long format', () => {
       expect(formatDateLong(noon)).to.equal('November 12, 1995');
     });
 
     const nhdvs = '1865-03-03T12:00:00.000+0000';
 
-    it('should display the date in the short format without padding', () => {
+    it('should display the date in the long format without padding', () => {
       expect(formatDateLong(nhdvs)).to.equal('March 3, 1865');
     });
 
@@ -122,7 +133,7 @@ describe('Helpers unit tests', () => {
       expect(formatDateLong(dateString)).to.equal('July 4, 1984');
     });
 
-    it('should return the current date in the correct format if no argument is given', () => {
+    it('should return the current date in the long format if no argument is given', () => {
       const today = new Date();
       expect(formatDateLong()).to.include(getYear(today));
     });
@@ -137,7 +148,7 @@ describe('Helpers unit tests', () => {
     const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
     const nhdvsEightAMOffset0 = '1865-03-03T08:00:00.000+0000';
 
-    it('should display the date in the short format', () => {
+    it('should display the date in the long format', () => {
       expect(formatDateParsedZoneLong(midnight)).to.equal('November 12, 1995');
     });
 
