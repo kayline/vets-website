@@ -72,35 +72,11 @@ export function formatDateLong(dateString) {
 /**
  * Returns a formatted date string based on an input date string or null (defaults to current datetime).
  * Ignores any offset information in the input string.
- * Functionally a duplicate to maintain interface during Moment.js removal
- *
- * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
- * @returns {string} Formatted string in the form January 1, 1995
- */
-export function formatDateParsedZoneLong(dateString) {
-  return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
-}
-
-/**
- * Returns a formatted date string based on an input date string or null (defaults to current datetime).
- * Ignores any offset information in the input string.
  *
  * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
  * @returns {string} Formatted string in the form 1/3/2006
  */
 export function formatDateShort(dateString) {
-  return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
-}
-
-/**
- * Returns a formatted date string based on an input date string or null (defaults to current datetime).
- * Ignores any offset information in the input string.
- * Functionally a duplicate to maintain interface during Moment.js removal
- *
- * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
- * @returns {string} Formatted string in the form 1/3/2006
- */
-export function formatDateParsedZoneShort(dateString) {
   return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
 }
 
@@ -155,7 +131,7 @@ export function timeFromNow(date, userFromDate = null) {
  * @returns {boolean} If the string is a valid date string
  */
 export function isValidDateString(dateString) {
-  return !isNaN(Date.parse(dateString));
+  return !Number.isNaN(Date.parse(dateString));
 }
 
 const monthIndices = {

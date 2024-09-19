@@ -5,9 +5,7 @@ import {
   dateFieldToDate,
   timeFromNow,
   formatDateShort,
-  formatDateParsedZoneShort,
   formatDateLong,
-  formatDateParsedZoneLong,
   isValidDateString,
   formatDowntime,
 } from '../date';
@@ -69,15 +67,13 @@ describe('Helpers unit tests', () => {
   });
 
   describe('formatDateShort', () => {
-    const noon = '1995-11-12T12:00:00.000+0000';
-
     it('should display the date in the short format', () => {
+      const noon = '1995-11-12T12:00:00.000+0000';
       expect(formatDateShort(noon)).to.equal('11/12/1995');
     });
 
-    const singleDigitDay = '1995-11-02T12:00:00.000+0000';
-
     it('should display the date with padding ', () => {
+      const singleDigitDay = '1995-11-02T12:00:00.000+0000';
       expect(formatDateShort(singleDigitDay)).to.equal('11/02/1995');
     });
 
@@ -85,47 +81,59 @@ describe('Helpers unit tests', () => {
       const today = new Date();
       expect(formatDateShort()).to.include(getYear(today));
     });
-  });
-
-  describe('formatDateParsedZoneShort', () => {
-    const midnight = '1995-11-12T00:00:00.000+0000';
-    const midnightOffsetNegative1 = '1995-11-12T00:00:00.000-1000';
-    const sixAMOffset0 = '1995-11-12T06:00:00.000+0000';
-    const eightAMOffset0 = '1995-11-12T08:00:00.000+0000';
-    const almostMidnightOffset0 = '1995-11-12T23:59:59.999+0000';
-    const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
-
-    it('should display the date in the short format', () => {
-      expect(formatDateParsedZoneShort(midnight)).to.equal('11/12/1995');
-    });
 
     it('should display the date string without regard to the timezone or offset', () => {
-      expect(formatDateParsedZoneShort(midnight)).to.equal('11/12/1995');
-      expect(formatDateParsedZoneShort(midnightOffsetNegative1)).to.equal(
-        '11/12/1995',
-      );
-      expect(formatDateParsedZoneShort(sixAMOffset0)).to.equal('11/12/1995');
-      expect(formatDateParsedZoneShort(eightAMOffset0)).to.equal('11/12/1995');
-      expect(formatDateParsedZoneShort(almostMidnightOffset0)).to.equal(
-        '11/12/1995',
-      );
-      expect(formatDateParsedZoneShort(almostMidnightOffsetNegative1)).to.equal(
+      const midnight = '1995-11-12T00:00:00.000+0000';
+      const midnightOffsetNegative1 = '1995-11-12T00:00:00.000-1000';
+      const sixAMOffset0 = '1995-11-12T06:00:00.000+0000';
+      const eightAMOffset0 = '1995-11-12T08:00:00.000+0000';
+      const almostMidnightOffset0 = '1995-11-12T23:59:59.999+0000';
+      const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
+
+      expect(formatDateShort(midnight)).to.equal('11/12/1995');
+      expect(formatDateShort(midnightOffsetNegative1)).to.equal('11/12/1995');
+      expect(formatDateShort(sixAMOffset0)).to.equal('11/12/1995');
+      expect(formatDateShort(eightAMOffset0)).to.equal('11/12/1995');
+      expect(formatDateShort(almostMidnightOffset0)).to.equal('11/12/1995');
+      expect(formatDateShort(almostMidnightOffsetNegative1)).to.equal(
         '11/12/1995',
       );
     });
   });
 
   describe('formatDateLong', () => {
-    const noon = '1995-11-12T12:00:00.000+0000';
-
     it('should display the date in the long format', () => {
+      const noon = '1995-11-12T12:00:00.000+0000';
       expect(formatDateLong(noon)).to.equal('November 12, 1995');
     });
 
-    const nhdvs = '1865-03-03T12:00:00.000+0000';
-
     it('should display the date in the long format without padding', () => {
-      expect(formatDateLong(nhdvs)).to.equal('March 3, 1865');
+      const singeDigitDay = '1865-03-03T12:00:00.000+0000';
+      expect(formatDateLong(singeDigitDay)).to.equal('March 3, 1865');
+    });
+
+    it('should display the date string without regard to the timezone or offset', () => {
+      const midnight = '1995-11-12T00:00:00.000+0000';
+      const midnightOffsetNegative1 = '1995-11-12T00:00:00.000-1000';
+      const sixAMOffset0 = '1995-11-12T06:00:00.000+0000';
+      const eightAMOffset0 = '1995-11-12T08:00:00.000+0000';
+      const almostMidnightOffset0 = '1995-11-12T23:59:59.999+0000';
+      const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
+      const nhdvsEightAMOffset0 = '1865-03-03T08:00:00.000+0000';
+
+      expect(formatDateLong(midnight)).to.equal('November 12, 1995');
+      expect(formatDateLong(midnightOffsetNegative1)).to.equal(
+        'November 12, 1995',
+      );
+      expect(formatDateLong(sixAMOffset0)).to.equal('November 12, 1995');
+      expect(formatDateLong(eightAMOffset0)).to.equal('November 12, 1995');
+      expect(formatDateLong(almostMidnightOffset0)).to.equal(
+        'November 12, 1995',
+      );
+      expect(formatDateLong(almostMidnightOffsetNegative1)).to.equal(
+        'November 12, 1995',
+      );
+      expect(formatDateLong(nhdvsEightAMOffset0)).to.equal('March 3, 1865');
     });
 
     it('should accept a yyyy-M-d string format', () => {
@@ -136,42 +144,6 @@ describe('Helpers unit tests', () => {
     it('should return the current date in the long format if no argument is given', () => {
       const today = new Date();
       expect(formatDateLong()).to.include(getYear(today));
-    });
-  });
-
-  describe('formatDateParsedZoneLong', () => {
-    const midnight = '1995-11-12T00:00:00.000+0000';
-    const midnightOffsetNegative1 = '1995-11-12T00:00:00.000-1000';
-    const sixAMOffset0 = '1995-11-12T06:00:00.000+0000';
-    const eightAMOffset0 = '1995-11-12T08:00:00.000+0000';
-    const almostMidnightOffset0 = '1995-11-12T23:59:59.999+0000';
-    const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
-    const nhdvsEightAMOffset0 = '1865-03-03T08:00:00.000+0000';
-
-    it('should display the date in the long format', () => {
-      expect(formatDateParsedZoneLong(midnight)).to.equal('November 12, 1995');
-    });
-
-    it('should display the date string without regard to the timezone or offset', () => {
-      expect(formatDateParsedZoneLong(midnight)).to.equal('November 12, 1995');
-      expect(formatDateParsedZoneLong(midnightOffsetNegative1)).to.equal(
-        'November 12, 1995',
-      );
-      expect(formatDateParsedZoneLong(sixAMOffset0)).to.equal(
-        'November 12, 1995',
-      );
-      expect(formatDateParsedZoneLong(eightAMOffset0)).to.equal(
-        'November 12, 1995',
-      );
-      expect(formatDateParsedZoneLong(almostMidnightOffset0)).to.equal(
-        'November 12, 1995',
-      );
-      expect(formatDateParsedZoneLong(almostMidnightOffsetNegative1)).to.equal(
-        'November 12, 1995',
-      );
-      expect(formatDateParsedZoneLong(nhdvsEightAMOffset0)).to.equal(
-        'March 3, 1865',
-      );
     });
   });
 
