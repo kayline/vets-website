@@ -119,6 +119,16 @@ describe('Helpers unit tests', () => {
     it('should display the date in the short format without padding', () => {
       expect(formatDateLong(nhdvs)).to.equal('March 3, 1865');
     });
+
+    it('should accept a yyyy-M-d string format', () => {
+      const dateString = '1984-07-04';
+      expect(formatDateLong(dateString)).to.equal('July 4, 1984');
+    });
+
+    it('should return the current date in the correct format if no argument is given', () => {
+      const today = new Date();
+      expect(formatDateLong()).to.include(getYear(today));
+    });
   });
 
   describe('formatDateParsedZoneLong', () => {

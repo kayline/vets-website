@@ -1,7 +1,11 @@
 import {
   parseISO,
+  parse,
   format,
   isValid,
+  getMonth,
+  getHours,
+  getMinutes,
   setYear,
   setMonth,
   setDate,
@@ -11,9 +15,20 @@ import {
   differenceInSeconds,
 } from 'date-fns';
 
-const parseZonedStringToDatetime = dateTimeString => {
-  const noOffset = dateTimeString.slice(0, -6);
-  const date = parseISO(noOffset);
+export const parseStringToDatetime = dateTimeString => {
+  let formattedString;
+  let date;
+  if (dateTimeString) {
+    if (dateTimeString.includes('T')) {
+      formattedString = dateTimeString.slice(0, -6);
+      date = parseISO(formattedString);
+    } else {
+      formattedString = dateTimeString;
+      date = parse(formattedString, "yyyy'-'M'-'d", new Date());
+    }
+  } else {
+    date = new Date();
+  }
   return isValid(date) ? date : null;
 };
 
@@ -29,20 +44,20 @@ export function dateToMoment(dateField) {
   return date;
 }
 
-export function formatDateLong(date) {
-  return format(parseZonedStringToDatetime(date), 'MMMM d, yyyy');
+export function formatDateLong(dateString) {
+  return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
 }
 
-export function formatDateParsedZoneLong(date) {
-  return format(parseZonedStringToDatetime(date), 'MMMM d, yyyy');
+export function formatDateParsedZoneLong(dateString) {
+  return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
 }
 
-export function formatDateShort(date) {
-  return format(parseZonedStringToDatetime(date), 'MM/dd/yyyy');
+export function formatDateShort(dateString) {
+  return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
 }
 
-export function formatDateParsedZoneShort(date) {
-  return format(parseZonedStringToDatetime(date), 'MM/dd/yyyy');
+export function formatDateParsedZoneShort(dateString) {
+  return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
 }
 
 function formatDiff(diff, desc) {
@@ -130,12 +145,12 @@ const LONG_FORM_MONTHS = [
  * @param {string} dateTime The date-time as a moment or string in Eastern time
  * @returns {string} The formatted date-time string
  */
-export const formatDowntime = dateTime => {
-  const dtMoment = parseZonedStringToDatetime(dateTime);
-  const dtHour = dtMoment.getHours();
-  const dtMinute = dtMoment.getMinutes();
+export const formatDowntime = dateTimeString => {
+  const dtMoment = parseStringToDatetime(dateTimeString);
+  const dtHour = getHours(dtMoment);
+  const dtMinute = getMinutes(dtMoment);
 
-  const monthFormat = LONG_FORM_MONTHS.includes(dtMoment.getMonth())
+  const monthFormat = LONG_FORM_MONTHS.includes(getMonth(dtMoment))
     ? 'MMMM'
     : "MMM'.'";
 
