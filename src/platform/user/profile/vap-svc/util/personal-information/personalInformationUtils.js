@@ -1,9 +1,6 @@
 import { mapValues } from 'lodash';
-import moment from 'moment';
-
 import OtherTextField from '../../components/OtherTextField';
 import TextWidget from '../../../../../forms-system/src/js/widgets/TextWidget';
-import { NOT_SET_TEXT } from '../../constants';
 import DeselectableObjectField from '../../components/DeselectableObjectField';
 
 export const notListedKeySuffix = 'NotListedText';
@@ -187,5 +184,3 @@ export const formatMultiSelectAndText = (data, fieldName) => {
 
   return null;
 };
-
-export const renderDOB = dob => (dob ? moment(dob).format('LL') : NOT_SET_TEXT);
