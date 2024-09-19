@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { isValid, getYear, getMonth, getDate, add } from 'date-fns';
 
 import {
-  dateToMoment,
+  dateFieldToDate,
   timeFromNow,
   formatDateShort,
   formatDateParsedZoneShort,
@@ -13,9 +13,9 @@ import {
 } from '../date';
 
 describe('Helpers unit tests', () => {
-  describe('dateToMoment', () => {
+  describe('dateFieldToDate', () => {
     it('should convert date to Date', () => {
-      const date = dateToMoment({
+      const date = dateFieldToDate({
         month: {
           value: 2,
         },
@@ -32,11 +32,8 @@ describe('Helpers unit tests', () => {
       expect(getMonth(date)).to.equal(2);
       expect(getDate(date)).to.equal(3);
     });
-    it('should convert partial date to Date', () => {
-      const date = dateToMoment({
-        month: {
-          value: 2,
-        },
+    it('should convert partial date to Date with default Jan 1', () => {
+      const date = dateFieldToDate({
         year: {
           value: '1901',
         },
@@ -44,7 +41,7 @@ describe('Helpers unit tests', () => {
 
       expect(isValid(date)).to.be.true;
       expect(getYear(date)).to.equal(1901);
-      expect(getMonth(date)).to.equal(2);
+      expect(getMonth(date)).to.equal(1);
       expect(getDate(date)).to.equal(1);
     });
   });

@@ -99,7 +99,7 @@ function isBlankDateField(field) {
   );
 }
 
-export function dateToMoment(dateField) {
+export function dateFieldToDate(dateField) {
   return moment({
     year: dateField.year.value,
     month: dateField.month.value ? parseInt(dateField.month.value, 10) - 1 : '',
@@ -115,8 +115,8 @@ export function isValidDateRange(fromDate, toDate, allowSameMonth = false) {
     return true;
   }
 
-  const momentStart = dateToMoment(fromDate);
-  const momentEnd = dateToMoment(toDate);
+  const momentStart = dateFieldToDate(fromDate);
+  const momentEnd = dateFieldToDate(toDate);
 
   if (!momentStart.isValid() || !momentEnd.isValid()) {
     return false;

@@ -131,7 +131,7 @@ function formatDiff(diff, desc) {
   return `${diff} ${desc}${diff === 1 ? '' : 's'}`;
 }
 
-export function dateToMoment(dateField) {
+export function dateFieldToDate(dateField) {
   return moment({
     year: dateField.year.value,
     month: dateField.month.value ? parseInt(dateField.month.value, 10) - 1 : '',

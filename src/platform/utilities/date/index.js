@@ -15,7 +15,14 @@ import {
   differenceInSeconds,
 } from 'date-fns';
 
-export const parseStringToDatetime = dateTimeString => {
+/**
+ * Returns a valid Date object or null based on input string.
+ * Ignores any offset information in the string. Retains time information.
+ *
+ * @param {string|null} dateTimeString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {Date|null} Date instance
+ */
+export function parseStringToDatetime(dateTimeString) {
   let formattedString;
   let date;
   if (dateTimeString) {
@@ -30,32 +37,69 @@ export const parseStringToDatetime = dateTimeString => {
     date = new Date();
   }
   return isValid(date) ? date : null;
-};
+}
 
-export function dateToMoment(dateField) {
+/**
+ * Turns an object with date values into a Date instance. It requires a year
+ * and defaults to January 1 for month and day. Year can be a string, month and day must be integers.
+ *
+ * @param {obj} dateField  A JS object with entries for year, and optional day and month.
+ * @returns {Date} Date instance
+ */
+export function dateFieldToDate(dateField) {
   let date = new Date(2024, 1, 1);
   date = setYear(date, parseInt(dateField.year.value, 10));
-  if (dateField.month.value) {
+  if (dateField.month && dateField.month.value) {
     date = setMonth(date, dateField.month.value);
   }
-  if (dateField.day) {
+  if (dateField.day && dateField.day.value) {
     date = setDate(date, dateField.day.value);
   }
   return date;
 }
 
+/**
+ * Returns a formatted date string based on an input date string or null (defaults to current datetime).
+ * Ignores any offset information in the input string
+ *
+ * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {string} Formatted string in the form January 1, 1995
+ */
 export function formatDateLong(dateString) {
   return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
 }
 
+/**
+ * Returns a formatted date string based on an input date string or null (defaults to current datetime).
+ * Ignores any offset information in the input string.
+ * Functionally a duplicate to maintain interface during Moment.js removal
+ *
+ * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {string} Formatted string in the form January 1, 1995
+ */
 export function formatDateParsedZoneLong(dateString) {
   return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
 }
 
+/**
+ * Returns a formatted date string based on an input date string or null (defaults to current datetime).
+ * Ignores any offset information in the input string.
+ *
+ * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {string} Formatted string in the form 1/3/2006
+ */
 export function formatDateShort(dateString) {
   return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
 }
 
+/**
+ * Returns a formatted date string based on an input date string or null (defaults to current datetime).
+ * Ignores any offset information in the input string.
+ * Functionally a duplicate to maintain interface during Moment.js removal
+ *
+ * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {string} Formatted string in the form 1/3/2006
+ */
 export function formatDateParsedZoneShort(dateString) {
   return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
 }
@@ -65,9 +109,8 @@ function formatDiff(diff, desc) {
 }
 
 /**
- * timeFromNow returns the number of days, hours, or minutes until
- * the provided date occurs. It’s meant to be less fuzzy than moment’s
- * timeFromNow so it can be used for expiration dates
+ * Returns the number of days, hours, or minutes until
+ * the provided date occurs.
  *
  * @param date {Date} The future date to check against
  * @param userFromDate {Date} The earlier date in the range. Defaults to today.
@@ -142,7 +185,7 @@ const LONG_FORM_MONTHS = [
  * Formats the given date-time into a string that is intended for use in
  * downtime notifications
  *
- * @param {string} dateTime The date-time as a moment or string in Eastern time
+ * @param {string} dateTime The date-time as a string in Eastern time
  * @returns {string} The formatted date-time string
  */
 export const formatDowntime = dateTimeString => {
