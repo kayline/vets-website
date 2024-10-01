@@ -159,7 +159,7 @@ export {
   isValidCurrentOrFutureDate,
   isValidCurrentOrPastYear,
   isValidCurrentOrFutureMonthYear,
-  dateFieldToDate,
+  utcDateFieldToLocalDate,
   isValidDateRange,
   isValidRoutingNumber,
 } from './src/js/utilities/validations/index';

@@ -5,7 +5,7 @@ import {
   maxYear,
 } from 'platform/forms-system/src/js/helpers';
 import { getDate, getMonth, getYear, isBefore } from 'date-fns';
-import { dateFieldToDate } from '../utilities/date';
+import { utcDateFieldToLocalDate } from '../utilities/date';
 
 /**
  * General Validations *
@@ -129,8 +129,8 @@ function isValidDateRange(fromDate, toDate) {
   if (isBlankDateField(toDate) || isBlankDateField(fromDate)) {
     return true;
   }
-  const start = dateFieldToDate(fromDate);
-  const end = dateFieldToDate(toDate);
+  const start = utcDateFieldToLocalDate(fromDate);
+  const end = utcDateFieldToLocalDate(toDate);
 
   return isBefore(start, end);
 }

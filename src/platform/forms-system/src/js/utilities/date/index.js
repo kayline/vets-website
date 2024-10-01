@@ -131,7 +131,7 @@ function formatDiff(diff, desc) {
   return `${diff} ${desc}${diff === 1 ? '' : 's'}`;
 }
 
-export function dateFieldToDate(dateField) {
+export function utcDateFieldToLocalDate(dateField) {
   return moment({
     year: dateField.year.value,
     month: dateField.month.value ? parseInt(dateField.month.value, 10) - 1 : '',

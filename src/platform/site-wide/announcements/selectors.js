@@ -2,7 +2,7 @@
 import { isBefore } from 'date-fns';
 // Relative imports.
 import _config from './config';
-import { parseStringToDatetime } from '../../utilities/date';
+import { parseZonedStringToLocalDateTime } from '../../utilities/date';
 
 // Checks if the announcement has started.
 const isStarted = announcement => {
@@ -14,7 +14,7 @@ const isStarted = announcement => {
   }
 
   // Derive if the announcement has started.
-  const startsAtDate = parseStringToDatetime(startsAt);
+  const startsAtDate = parseZonedStringToLocalDateTime(startsAt, 'Etc/GMT');
 
   return isBefore(startsAtDate, new Date());
 };
@@ -29,7 +29,7 @@ const isNotExpired = announcement => {
   }
 
   // Derive if the announcement has expired.
-  const expiresAtDate = parseStringToDatetime(expiresAt);
+  const expiresAtDate = parseZonedStringToLocalDateTime(expiresAt, 'Etc/GMT');
 
   return isBefore(new Date(), expiresAtDate);
 };

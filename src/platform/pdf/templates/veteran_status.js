@@ -7,7 +7,7 @@
 /* eslint-disable no-await-in-loop */
 
 import { format } from 'date-fns';
-import { parseStringToDatetime } from '../../utilities/date';
+import { parseZonedStringToLocalDateTime } from '../../utilities/date';
 import { MissingFieldsException } from '../utils/exceptions/MissingFieldsException';
 
 import { createAccessibleDoc, registerVaGovFonts } from './utils';
@@ -152,10 +152,10 @@ const generate = async data => {
 
   data.details.serviceHistory.slice(0, 2).forEach(item => {
     const formattedBeginDate = item.beginDate
-      ? format(parseStringToDatetime(item.beginDate), 'LL')
+      ? format(parseZonedStringToLocalDateTime(item.beginDate, 'Etc/GMT'), 'LL')
       : '';
     const formattedEndDate = item.endDate
-      ? format(parseStringToDatetime(item.endDate), 'LL')
+      ? format(parseZonedStringToLocalDateTime(item.endDate, 'Etc/GMT'), 'LL')
       : '';
     const dateRange =
       formattedBeginDate.length || formattedEndDate.length

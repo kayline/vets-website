@@ -99,7 +99,7 @@ function isBlankDateField(field) {
   );
 }
 
-export function dateFieldToDate(dateField) {
+export function utcDateFieldToLocalDate(dateField) {
   return moment({
     year: dateField.year.value,
     month: dateField.month.value ? parseInt(dateField.month.value, 10) - 1 : '',
@@ -115,8 +115,8 @@ export function isValidDateRange(fromDate, toDate, allowSameMonth = false) {
     return true;
   }
 
-  const momentStart = dateFieldToDate(fromDate);
-  const momentEnd = dateFieldToDate(toDate);
+  const momentStart = utcDateFieldToLocalDate(fromDate);
+  const momentEnd = utcDateFieldToLocalDate(toDate);
 
   if (!momentStart.isValid() || !momentEnd.isValid()) {
     return false;

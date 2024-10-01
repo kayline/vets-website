@@ -1,5 +1,4 @@
 import {
-  parseISO,
   parse,
   format,
   isValid,
@@ -13,7 +12,14 @@ import {
   differenceInHours,
   differenceInMinutes,
   differenceInSeconds,
+  addMilliseconds,
 } from 'date-fns';
+
+import {
+  zonedTimeToUtc,
+  formatInTimeZone,
+  getTimezoneOffset,
+} from 'date-fns-tz';
 
 /**
  * Returns a valid Date object or null based on input string.
@@ -22,51 +28,77 @@ import {
  * @param {string|null} dateTimeString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
  * @returns {Date|null} Date instance
  */
-export function parseStringToDatetime(dateTimeString) {
+
+export function parseZonedStringToLocalDateTime(dateTimeString, timezone) {
   let formattedString;
   let date;
-  if (dateTimeString) {
-    if (dateTimeString.includes('T')) {
-      formattedString = dateTimeString.slice(0, -6);
-      date = parseISO(formattedString);
-    } else {
-      formattedString = dateTimeString;
-      date = parse(formattedString, "yyyy'-'M'-'d", new Date());
-    }
+
+  if (dateTimeString.includes('T')) {
+    formattedString = dateTimeString.slice(0, -6); // ignore the time zone offset
+    date = zonedTimeToUtc(formattedString, timezone);
   } else {
-    date = new Date();
+    formattedString = dateTimeString;
+    const localMidnight = parse(formattedString, "yyyy'-'M'-'d", new Date());
+    date = zonedTimeToUtc(localMidnight, timezone);
   }
+
   return isValid(date) ? date : null;
 }
 
 /**
  * Turns an object with date values into a Date instance. It requires a year
  * and defaults to January 1 for month and day. Year can be a string, month and day must be integers.
+ * Assumes input date is midnight UTC.
  *
  * @param {obj} dateField  A JS object with entries for year, and optional day and month.
  * @returns {Date} Date instance
  */
-export function dateFieldToDate(dateField) {
-  let date = new Date(2024, 1, 1);
+export function utcDateFieldToLocalDate(dateField) {
+  let date = new Date(2024, 0, 1);
   date = setYear(date, parseInt(dateField.year.value, 10));
   if (dateField.month && dateField.month.value) {
-    date = setMonth(date, dateField.month.value);
+    date = setMonth(date, dateField.month.value - 1); // zero-offset months
   }
   if (dateField.day && dateField.day.value) {
     date = setDate(date, dateField.day.value);
   }
-  return date;
+
+  return zonedTimeToUtc(date, 'Etc/GMT');
 }
 
 /**
  * Returns a formatted date string based on an input date string or null (defaults to current datetime).
- * Ignores any offset information in the input string
+ * Ignores any offset information in the input string.
+ * Treats input string and output date as UTC.
+ *
+ * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
+ * @returns {string} Formatted string in given form
+ */
+function formatDateString(dateString = null, displayFormat) {
+  let formattedDate;
+  if (dateString) {
+    formattedDate = formatInTimeZone(
+      parseZonedStringToLocalDateTime(dateString, 'Etc/GMT'),
+      'Etc/GMT',
+      displayFormat,
+    );
+  } else {
+    formattedDate = format(new Date(), displayFormat);
+  }
+
+  return formattedDate;
+}
+
+/**
+ * Returns a formatted date string based on an input date string or null (defaults to current datetime).
+ * Ignores any offset information in the input string.
+ * Treats input string and output date as UTC.
  *
  * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
  * @returns {string} Formatted string in the form January 1, 1995
  */
-export function formatDateLong(dateString) {
-  return format(parseStringToDatetime(dateString), 'MMMM d, yyyy');
+export function formatDateUtcLong(dateString) {
+  return formatDateString(dateString, 'MMMM d, yyyy');
 }
 
 /**
@@ -76,8 +108,8 @@ export function formatDateLong(dateString) {
  * @param {string|null} dateString  A date string in either ISO8601 format or YYYY-MM-DD, or null.
  * @returns {string} Formatted string in the form 1/3/2006
  */
-export function formatDateShort(dateString) {
-  return format(parseStringToDatetime(dateString), 'MM/dd/yyyy');
+export function formatDateUtcShort(dateString) {
+  return formatDateString(dateString, 'MM/dd/yyyy');
 }
 
 function formatDiff(diff, desc) {
@@ -165,11 +197,23 @@ const LONG_FORM_MONTHS = [
  * @returns {string} The formatted date-time string
  */
 export const formatDowntime = dateTimeString => {
-  const dtMoment = parseStringToDatetime(dateTimeString);
-  const dtHour = getHours(dtMoment);
-  const dtMinute = getMinutes(dtMoment);
+  const dtLocal = parseZonedStringToLocalDateTime(
+    dateTimeString,
+    'America/New_York',
+  );
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const localOffSetMilliseconds = -getTimezoneOffset(timezone, dtLocal);
+  const easternOffSetMilliseconds = -getTimezoneOffset(
+    'America/New_York',
+    dtLocal,
+  );
+  const offSetMilliseconds =
+    localOffSetMilliseconds - easternOffSetMilliseconds;
+  const dtEastern = addMilliseconds(dtLocal, offSetMilliseconds); // the equivalent eastern time, but the object still thinks it is in local time
+  const dtHour = getHours(dtEastern);
+  const dtMinute = getMinutes(dtEastern);
 
-  const monthFormat = LONG_FORM_MONTHS.includes(getMonth(dtMoment))
+  const monthFormat = LONG_FORM_MONTHS.includes(getMonth(dtEastern))
     ? 'MMMM'
     : "MMM'.'";
 
@@ -184,5 +228,9 @@ export const formatDowntime = dateTimeString => {
     timeFormat = `h:mm ${amPmFormat}`;
   }
 
-  return format(dtMoment, `${monthFormat} d 'at' ${timeFormat} 'ET'`);
+  return formatInTimeZone(
+    dtLocal,
+    'America/New_York',
+    `${monthFormat} d 'at' ${timeFormat} 'ET'`,
+  );
 };

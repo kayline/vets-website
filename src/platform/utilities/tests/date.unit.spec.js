@@ -1,19 +1,75 @@
 import { expect } from 'chai';
-import { isValid, getYear, getMonth, getDate, add } from 'date-fns';
+import {
+  isValid,
+  getYear,
+  getMonth,
+  getDate,
+  getHours,
+  getMinutes,
+  add,
+  addMilliseconds,
+} from 'date-fns';
+import { getTimezoneOffset } from 'date-fns-tz';
 
 import {
-  dateFieldToDate,
+  utcDateFieldToLocalDate,
   timeFromNow,
-  formatDateShort,
-  formatDateLong,
+  formatDateUtcShort,
+  formatDateUtcLong,
   isValidDateString,
   formatDowntime,
+  parseZonedStringToLocalDateTime,
 } from '../date';
 
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 describe('Helpers unit tests', () => {
-  describe('dateFieldToDate', () => {
-    it('should convert date to Date', () => {
-      const date = dateFieldToDate({
+  describe('parseZonedStringToLocalDateTime', () => {
+    it('should treat zero offset as given timezone and return the local date and time', () => {
+      const midnight = '1995-11-12T00:00:00.000+0000';
+      const parsedDate = parseZonedStringToLocalDateTime(midnight, 'Etc/GMT');
+      const offSetMilliseconds = -getTimezoneOffset(timezone, parsedDate);
+      const utcDate = addMilliseconds(parsedDate, offSetMilliseconds);
+
+      expect(getYear(parsedDate)).to.equal(1995);
+      expect(getMonth(parsedDate)).to.equal(10); // zero-index months
+      expect(getDate(utcDate)).to.equal(12);
+      expect(getHours(utcDate)).to.equal(0);
+      expect(getMinutes(utcDate)).to.equal(0);
+    });
+
+    it('should ignore other offsets and treat the string as given timezone', () => {
+      const midnightOffsetNegative1 = '1995-11-12T00:00:00.000-1000';
+      const parsedDate = parseZonedStringToLocalDateTime(
+        midnightOffsetNegative1,
+        'Etc/GMT',
+      );
+      const offSetMilliseconds = -getTimezoneOffset(timezone, parsedDate);
+      const utcDate = addMilliseconds(parsedDate, offSetMilliseconds);
+
+      expect(getYear(parsedDate)).to.equal(1995);
+      expect(getMonth(parsedDate)).to.equal(10); // zero-index months
+      expect(getDate(utcDate)).to.equal(12);
+      expect(getHours(utcDate)).to.equal(0);
+      expect(getMinutes(utcDate)).to.equal(0);
+    });
+
+    it('should treat YYYY-M-d format as given timezone and return local date and time', () => {
+      const parsedDate = parseZonedStringToLocalDateTime('1995-11-12');
+      const offSetMilliseconds = -getTimezoneOffset(timezone, parsedDate);
+      const utcDate = addMilliseconds(parsedDate, offSetMilliseconds);
+
+      expect(getYear(parsedDate)).to.equal(1995);
+      expect(getMonth(parsedDate)).to.equal(10); // zero-index months
+      expect(getDate(utcDate)).to.equal(12);
+      expect(getHours(utcDate)).to.equal(0);
+      expect(getMinutes(utcDate)).to.equal(0);
+    });
+  });
+
+  describe('utcDateFieldToLocalDate', () => {
+    it('should convert utc date values to local Date', () => {
+      const date = utcDateFieldToLocalDate({
         month: {
           value: 2,
         },
@@ -24,23 +80,29 @@ describe('Helpers unit tests', () => {
           value: '1901',
         },
       });
+      const offSetMilliseconds = -getTimezoneOffset(timezone, date);
+      const utcDate = addMilliseconds(date, offSetMilliseconds);
 
       expect(isValid(date)).to.be.true;
-      expect(getYear(date)).to.equal(1901);
-      expect(getMonth(date)).to.equal(2);
-      expect(getDate(date)).to.equal(3);
+      expect(getYear(utcDate)).to.equal(1901);
+      expect(getMonth(utcDate)).to.equal(1); // zero-offset months
+      expect(getDate(utcDate)).to.equal(3);
     });
+
     it('should convert partial date to Date with default Jan 1', () => {
-      const date = dateFieldToDate({
+      const date = utcDateFieldToLocalDate({
         year: {
           value: '1901',
         },
       });
 
+      const offSetMilliseconds = -getTimezoneOffset(timezone, date);
+      const utcDate = addMilliseconds(date, offSetMilliseconds);
+
       expect(isValid(date)).to.be.true;
-      expect(getYear(date)).to.equal(1901);
-      expect(getMonth(date)).to.equal(1);
-      expect(getDate(date)).to.equal(1);
+      expect(getYear(utcDate)).to.equal(1901);
+      expect(getMonth(utcDate)).to.equal(0);
+      expect(getDate(utcDate)).to.equal(1);
     });
   });
 
@@ -66,20 +128,20 @@ describe('Helpers unit tests', () => {
     });
   });
 
-  describe('formatDateShort', () => {
+  describe('formatDateUtcShort', () => {
     it('should display the date in the short format', () => {
       const noon = '1995-11-12T12:00:00.000+0000';
-      expect(formatDateShort(noon)).to.equal('11/12/1995');
+      expect(formatDateUtcShort(noon)).to.equal('11/12/1995');
     });
 
     it('should display the date with padding ', () => {
       const singleDigitDay = '1995-11-02T12:00:00.000+0000';
-      expect(formatDateShort(singleDigitDay)).to.equal('11/02/1995');
+      expect(formatDateUtcShort(singleDigitDay)).to.equal('11/02/1995');
     });
 
     it('should return the current date in the short format if no argument is given', () => {
       const today = new Date();
-      expect(formatDateShort()).to.include(getYear(today));
+      expect(formatDateUtcShort()).to.include(getYear(today));
     });
 
     it('should display the date string without regard to the timezone or offset', () => {
@@ -90,26 +152,28 @@ describe('Helpers unit tests', () => {
       const almostMidnightOffset0 = '1995-11-12T23:59:59.999+0000';
       const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
 
-      expect(formatDateShort(midnight)).to.equal('11/12/1995');
-      expect(formatDateShort(midnightOffsetNegative1)).to.equal('11/12/1995');
-      expect(formatDateShort(sixAMOffset0)).to.equal('11/12/1995');
-      expect(formatDateShort(eightAMOffset0)).to.equal('11/12/1995');
-      expect(formatDateShort(almostMidnightOffset0)).to.equal('11/12/1995');
-      expect(formatDateShort(almostMidnightOffsetNegative1)).to.equal(
+      expect(formatDateUtcShort(midnight)).to.equal('11/12/1995');
+      expect(formatDateUtcShort(midnightOffsetNegative1)).to.equal(
+        '11/12/1995',
+      );
+      expect(formatDateUtcShort(sixAMOffset0)).to.equal('11/12/1995');
+      expect(formatDateUtcShort(eightAMOffset0)).to.equal('11/12/1995');
+      expect(formatDateUtcShort(almostMidnightOffset0)).to.equal('11/12/1995');
+      expect(formatDateUtcShort(almostMidnightOffsetNegative1)).to.equal(
         '11/12/1995',
       );
     });
   });
 
-  describe('formatDateLong', () => {
+  describe('formatDateUtcLong', () => {
     it('should display the date in the long format', () => {
       const noon = '1995-11-12T12:00:00.000+0000';
-      expect(formatDateLong(noon)).to.equal('November 12, 1995');
+      expect(formatDateUtcLong(noon)).to.equal('November 12, 1995');
     });
 
     it('should display the date in the long format without padding', () => {
       const singeDigitDay = '1865-03-03T12:00:00.000+0000';
-      expect(formatDateLong(singeDigitDay)).to.equal('March 3, 1865');
+      expect(formatDateUtcLong(singeDigitDay)).to.equal('March 3, 1865');
     });
 
     it('should display the date string without regard to the timezone or offset', () => {
@@ -121,29 +185,29 @@ describe('Helpers unit tests', () => {
       const almostMidnightOffsetNegative1 = '1995-11-12T23:59:59.999-1000';
       const nhdvsEightAMOffset0 = '1865-03-03T08:00:00.000+0000';
 
-      expect(formatDateLong(midnight)).to.equal('November 12, 1995');
-      expect(formatDateLong(midnightOffsetNegative1)).to.equal(
+      expect(formatDateUtcLong(midnight)).to.equal('November 12, 1995');
+      expect(formatDateUtcLong(midnightOffsetNegative1)).to.equal(
         'November 12, 1995',
       );
-      expect(formatDateLong(sixAMOffset0)).to.equal('November 12, 1995');
-      expect(formatDateLong(eightAMOffset0)).to.equal('November 12, 1995');
-      expect(formatDateLong(almostMidnightOffset0)).to.equal(
+      expect(formatDateUtcLong(sixAMOffset0)).to.equal('November 12, 1995');
+      expect(formatDateUtcLong(eightAMOffset0)).to.equal('November 12, 1995');
+      expect(formatDateUtcLong(almostMidnightOffset0)).to.equal(
         'November 12, 1995',
       );
-      expect(formatDateLong(almostMidnightOffsetNegative1)).to.equal(
+      expect(formatDateUtcLong(almostMidnightOffsetNegative1)).to.equal(
         'November 12, 1995',
       );
-      expect(formatDateLong(nhdvsEightAMOffset0)).to.equal('March 3, 1865');
+      expect(formatDateUtcLong(nhdvsEightAMOffset0)).to.equal('March 3, 1865');
     });
 
     it('should accept a yyyy-M-d string format', () => {
       const dateString = '1984-07-04';
-      expect(formatDateLong(dateString)).to.equal('July 4, 1984');
+      expect(formatDateUtcLong(dateString)).to.equal('July 4, 1984');
     });
 
     it('should return the current date in the long format if no argument is given', () => {
       const today = new Date();
-      expect(formatDateLong()).to.include(getYear(today));
+      expect(formatDateUtcLong()).to.include(getYear(today));
     });
   });
 
